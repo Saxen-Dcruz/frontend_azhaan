@@ -10,7 +10,7 @@ const _fetchService = (PATH, serviceMethod, data, successCallback, errorCallBack
   const userDetails = storedData.userDetails || {};
   const { id, email, userRole, username } = userDetails;
 
-  const END_POINT = "http://192.168.1.53:8000/api/v1/";
+  const END_POINT = "http://localhost:8000/api/v1/";
   const isFormData = data instanceof FormData;
 
   const headers = isFormData
@@ -59,7 +59,7 @@ const _fetchService = (PATH, serviceMethod, data, successCallback, errorCallBack
 
 
 export const LoginService = (data) => {
-  const END_POINT = "http://192.168.1.53:8000/api/v1/auth/login";
+  const END_POINT = "http://localhost:8000/api/v1/auth/login";
   const SERVICE_METHOD = "POST";
   const headers = {
     Accept: "application/json",
@@ -83,3 +83,7 @@ export const LogoutService = (successCallback, errorCallBack) =>
 
 export const RegisterService = (data, successCallback, errorCallBack) =>
   _fetchService("auth/register", "POST", data, successCallback, errorCallBack);
+
+export const GoogleService = (data, successCallback, errorCallBack) =>
+  _fetchService("auth/google/login", "GET", data, successCallback, errorCallBack);
+
