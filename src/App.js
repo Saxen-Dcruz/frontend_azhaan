@@ -8,6 +8,7 @@ import Dashboard from './components/dashboard/Dashboard';
 import AdminPanel from './components/admin/AdminPanel';
 import StreamBroadcast from './components/Streams/StreamBroadcast';
 import LoadingSpinner from './components/ui/LoadingSpinner';
+import { SocketProvider } from './contexts/SocketProvider';
 
 // Replace with your actual Google OAuth Client ID
 const GOOGLE_CLIENT_ID = 'your-google-oauth-client-id-here';
@@ -33,6 +34,7 @@ function App() {
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <AuthProvider>
+        <SocketProvider>
         <Router>
           <div className="min-h-screen bg-gray-900">
             <Routes>
@@ -57,6 +59,7 @@ function App() {
             </Routes>
           </div>
         </Router>
+        </SocketProvider>
       </AuthProvider>
     </GoogleOAuthProvider>
   );
