@@ -1,7 +1,7 @@
 import React from 'react';
-import { useStreams } from '../../contexts/StreamContext';
+import { useStreams } from '../../contexts/StreamContext.js';
 import StreamCard from './StreamCard.js';
-import LoadingSpinner from '../ui/LoadingSpinner';
+import LoadingSpinner from '../ui/LoadingSpinner.js';
 
 const StreamList = ({ filter }) => {
   const { filteredStreams, loading } = useStreams();
