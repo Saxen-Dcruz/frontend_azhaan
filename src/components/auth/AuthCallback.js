@@ -8,7 +8,7 @@ import LoadingSpinner from '../ui/LoadingSpinner';
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { login } = useAuth(); // Get the login function from your context
+  const { login } = useAuth();
 
   useEffect(() => {
     const token = searchParams.get('token');
@@ -22,44 +22,49 @@ const AuthCallback = () => {
         const data = {
           access_token: token,
           userDetails: userDetails,
-          role: userDetails.role, // Get the role from the userDetails
+          role: userDetails.role,
         };
 
-        // 1. Store the data (just like in your regular login)
+        // 1. Store the data
         ApplicationStore().setStorage('userDetails', data);
 
         // 2. Update your AuthContext
         login(data);
 
         // 3. Navigate to the correct dashboard based on role
-        // (This logic is copied from your Login.js useEffect)
+        // UPDATED: Use the new dashboard routes
         switch (userDetails.role) {
-          case 'superuser':
-            navigate('/admin');
+          case 'Superuser':
+          case 'admin':
+            navigate('/admin-dashboard');
             break;
-          case 'speaker':
-            navigate('/broadcast'); // Your App.js route is /broadcast
+          case 'Speaker':
+            navigate('/speaker-dashboard');
+            break;
+          case 'Listener':
+            navigate('/listener-dashboard');
             break;
           default:
-            navigate('/dashboard'); // Default for 'listener', etc.
+            navigate('/dashboard'); // This will auto-redirect based on role
         }
       } catch (error) {
         console.error('Failed to parse user data from callback:', error);
-        navigate('/login?error=true');
+        navigate('/login?error=auth_failed');
       }
     } else {
       // Handle cases where the token or user is missing
       console.error('Missing token or user data in callback');
-      navigate('/login?error=true');
+      navigate('/login?error=missing_data');
     }
-    // We only want this to run once when the component mounts
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, [searchParams, navigate, login]);
 
   // Show a loading spinner while the redirect is processed
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
-      <LoadingSpinner size="lg" />
+      <div className="text-center">
+        <LoadingSpinner size="lg" />
+        <p className="text-gray-400 mt-4">Completing authentication...</p>
+      </div>
     </div>
   );
 };

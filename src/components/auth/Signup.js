@@ -45,20 +45,20 @@ const Signup = () => {
     }
   };
 
+  // ✅ Simplified Password Validation (No uppercase/lowercase restriction)
   const validatePassword = (pwd) => {
     const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
     const numberRegex = /[0-9]/;
-    const emojiRegex =
-      /[\u{1F600}-\u{1F6FF}\u{1F300}-\u{1F5FF}\u{1F700}-\u{1F77F}]/u;
+    const emojiRegex = /[\u{1F600}-\u{1F6FF}\u{1F300}-\u{1F5FF}\u{1F700}-\u{1F77F}]/u;
 
     if (pwd.length < 8) {
       setPasswordError('Password must be at least 8 characters');
       return false;
-    } else if (!specialCharRegex.test(pwd)) {
-      setPasswordError('Password must include at least one special character');
-      return false;
     } else if (!numberRegex.test(pwd)) {
       setPasswordError('Password must include at least one number');
+      return false;
+    } else if (!specialCharRegex.test(pwd)) {
+      setPasswordError('Password must include at least one special character');
       return false;
     } else if (emojiRegex.test(pwd)) {
       setPasswordError('Password contains invalid characters');
@@ -69,14 +69,22 @@ const Signup = () => {
     }
   };
 
+  // ✅ Simplified Strength Evaluation
   const evaluateStrength = (pwd) => {
-    if (pwd.length >= 8) {
-      let strengthPoints = 0;
-      if (/[0-9]/.test(pwd)) strengthPoints++;
-      if (/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) strengthPoints++;
-      if (strengthPoints <= 1) setPasswordStrength('low');
-      else if (strengthPoints === 2) setPasswordStrength('medium');
-      else setPasswordStrength('high');
+    if (!pwd) {
+      setPasswordStrength('');
+      return;
+    }
+
+    const hasNumber = /[0-9]/.test(pwd);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(pwd);
+
+    if (pwd.length < 8) {
+      setPasswordStrength('low');
+    } else if (pwd.length >= 8 && (!hasNumber || !hasSpecial)) {
+      setPasswordStrength('medium');
+    } else if (pwd.length >= 8 && hasNumber && hasSpecial) {
+      setPasswordStrength('high');
     } else {
       setPasswordStrength('');
     }
@@ -92,6 +100,32 @@ const Signup = () => {
         return 'bg-green-500 w-full';
       default:
         return 'bg-gray-400 w-0';
+    }
+  };
+
+  const getStrengthText = () => {
+    switch (passwordStrength) {
+      case 'low':
+        return 'Weak';
+      case 'medium':
+        return 'Medium';
+      case 'high':
+        return 'Strong';
+      default:
+        return '';
+    }
+  };
+
+  const getStrengthTextColor = () => {
+    switch (passwordStrength) {
+      case 'low':
+        return 'text-red-400';
+      case 'medium':
+        return 'text-yellow-400';
+      case 'high':
+        return 'text-green-400';
+      default:
+        return 'text-gray-400';
     }
   };
 
@@ -136,7 +170,7 @@ const Signup = () => {
     );
   };
 
-  // ✅ Correct Google Signup — same flow as login
+  // ✅ Google Signup Redirect
   const handleGoogleSignup = () => {
     window.location.href = 'http://localhost:8000/api/v1/auth/google/login';
   };
@@ -177,8 +211,8 @@ const Signup = () => {
                 name="username"
                 value={formData.username}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200"
-                placeholder="Enter your Username"
+                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                placeholder="Enter your username"
                 required
               />
             </div>
@@ -191,7 +225,7 @@ const Signup = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200"
+                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 placeholder="Enter your email"
                 required
               />
@@ -205,9 +239,12 @@ const Signup = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200
-                  ${submitted && passwordError ? 'border border-red-500 bg-red-100 text-red-900' : 'bg-gray-700/50 border border-gray-600 text-white'}`}
-                placeholder="Create a password"
+                className={`w-full px-4 py-3 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                  submitted && passwordError
+                    ? 'border border-red-500 bg-red-100 text-red-900'
+                    : 'bg-gray-700/50 border border-gray-600 text-white'
+                }`}
+                placeholder="Create a strong password"
                 required
               />
               <button
@@ -218,28 +255,57 @@ const Signup = () => {
                 {passwordVisible ? 'Hide' : 'Show'}
               </button>
 
-              <div className="h-2 mt-2 w-full bg-gray-600 rounded">
-                <div className={`h-2 rounded transition-all duration-500 ${getStrengthColor()}`}></div>
-              </div>
+              {/* Password Strength Indicator */}
+              {formData.password && (
+                <div className="mt-3">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-gray-400 text-sm">Password strength:</span>
+                    <span className={`text-sm font-medium ${getStrengthTextColor()}`}>
+                      {getStrengthText()}
+                    </span>
+                  </div>
+                  <div className="h-2 w-full bg-gray-600 rounded-full overflow-hidden">
+                    <div
+                      className={`h-2 rounded-full transition-all duration-500 ${getStrengthColor()}`}
+                    ></div>
+                  </div>
+                  <div className="text-gray-400 text-xs mt-2">
+                    Must include: at least one number and one special character
+                  </div>
+                </div>
+              )}
 
-              {submitted && passwordError && <p className="text-red-500 mt-1 text-sm">{passwordError}</p>}
+              {submitted && passwordError && (
+                <p className="text-red-400 mt-2 text-sm">{passwordError}</p>
+              )}
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 transition-all duration-200"
+              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? <LoadingSpinner size="sm" /> : 'SIGN UP'}
             </button>
 
-            <div className="mt-4">
-              <GoogleSignupButton />
+            {/* Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-600/50"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-3 bg-gray-800 text-gray-400">Or continue with</span>
+              </div>
             </div>
 
-            <div className="text-center text-gray-400 text-sm mt-4">
+            <GoogleSignupButton />
+
+            <div className="text-center text-gray-400 text-sm">
               Already have an account?{' '}
-              <Link to="/login" className="text-blue-400 hover:text-blue-300 font-medium hover:underline">
+              <Link
+                to="/login"
+                className="text-blue-400 hover:text-blue-300 font-medium hover:underline"
+              >
                 Login
               </Link>
             </div>

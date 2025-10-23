@@ -310,24 +310,25 @@ const Login = () => {
   const navigate = useNavigate();
   const { isAuthenticated, login, role } = useAuth();
 
-  // ✅ Redirect after successful login based on role
-  useEffect(() => {
-    if (isAuthenticated && role) {
-      switch (role) {
-        case 'superuser':
-          navigate('/admin');
-          break;
-        case 'speaker':
-          navigate('/speaker-dashboard');
-          break;
-        case 'listener':
-          navigate('/listener-dashboard');
-          break;
-        default:
-          navigate('/dashboard');
-      }
+  // In Login.js - Update the useEffect
+useEffect(() => {
+  if (isAuthenticated && role) {
+    switch (role) {
+      case 'Superuser':
+      case 'admin':
+        navigate('/admin-dashboard');
+        break;
+      case 'Speaker':
+        navigate('/speaker-dashboard');
+        break;
+      case 'Listener':
+        navigate('/listener-dashboard');
+        break;
+      default:
+        navigate('/dashboard'); // This will auto-redirect
     }
-  }, [isAuthenticated, role, navigate]);
+  }
+}, [isAuthenticated, role, navigate]);
 
   // ✅ Regular Email/Password Login
   const handleSubmit = async (e) => {
